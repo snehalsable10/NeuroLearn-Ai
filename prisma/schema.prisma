@@ -73,6 +73,7 @@ model User {
   image         String?
   password      String?
   walletAddress String?   @unique
+  points        Int       @default(0)
   accounts      Account[]
   sessions      Session[]
   videos        Video[]

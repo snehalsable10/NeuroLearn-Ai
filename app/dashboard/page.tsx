@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { GraduationCap, BookOpen, Clock, TrendingUp, History, ArrowRight, Play, Briefcase } from 'lucide-react';
+import { GraduationCap, BookOpen, Clock, TrendingUp, History, ArrowRight, Play, Briefcase, Trophy } from 'lucide-react';
 import Link from 'next/link';
 import { InterviewList } from './_components/InterviewList';
 import { AddInterview } from './_components/AddInterview';
@@ -20,6 +20,7 @@ type Stats = {
   completedVideos: number;
   totalWatchTime: number;
   totalInterviews?: number;
+  points: number;
 };
 
 type SearchHistoryItem = {
@@ -84,6 +85,7 @@ export default function Dashboard() {
     completedVideos: 0,
     totalWatchTime: 0,
     totalInterviews: 0,
+    points: 0,
   });
   const [recentPlaylists, setRecentPlaylists] = useState<Playlist[]>([]);
   const [searchHistory, setSearchHistory] = useState<SearchHistoryItem[]>([]);
@@ -106,6 +108,7 @@ export default function Dashboard() {
       loadPlaylistHistory();
       loadWatchHistory();
       loadInterviewStats();
+      loadUserPoints();
     }
   }, [sessionStatus, refreshInterviews]);
 
@@ -167,6 +170,27 @@ export default function Dashboard() {
       setHistoryError('Failed to load history');
     } finally {
       setHistoryLoading(false);
+    }
+  };
+
+
+  const loadUserPoints = async () => {
+    try {
+      const response = await fetch('/api/user/profile', {
+        credentials: 'include'
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch user profile');
+      }
+
+      const data = await response.json();
+      setStats(prev => ({
+        ...prev,
+        points: data?.user?.points || 0,
+      }));
+    } catch (error) {
+      console.error('Failed to load user points:', error);
     }
   };
 
@@ -260,7 +284,7 @@ export default function Dashboard() {
             </div>
 
             {/* Stats Grid - Enhanced Style */}
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-6 gap-4 mb-8">
               <Card className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950 dark:to-blue-900 border border-blue-200 dark:border-blue-800 shadow-md hover:shadow-lg transition-shadow">
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
@@ -306,6 +330,20 @@ export default function Dashboard() {
                       <p className="text-4xl font-bold mt-2 text-orange-900 dark:text-orange-100">{Math.round(completionPercentage)}%</p>
                     </div>
                     <TrendingUp className="h-12 w-12 text-orange-300 dark:text-orange-600" />
+                  </div>
+                </CardContent>
+              </Card>
+
+
+
+              <Card className="bg-gradient-to-br from-amber-50 to-amber-100 dark:from-amber-950 dark:to-amber-900 border border-amber-200 dark:border-amber-800 shadow-md hover:shadow-lg transition-shadow">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-semibold text-amber-700 dark:text-amber-300">Feature Points</p>
+                      <p className="text-4xl font-bold mt-2 text-amber-900 dark:text-amber-100">{stats.points}</p>
+                    </div>
+                    <Trophy className="h-12 w-12 text-amber-300 dark:text-amber-600" />
                   </div>
                 </CardContent>
               </Card>

@@ -84,6 +84,8 @@ export function VideoPlayer({
         credentials: 'include',
         body: JSON.stringify({
           videoId,
+          title,
+          description,
           watchTime: 0, // You can pass actual watch time if tracked
           completed: true,
         }),
