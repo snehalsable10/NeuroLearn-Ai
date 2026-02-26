@@ -112,7 +112,11 @@ export async function POST(req: NextRequest) {
     });
 
     let history;
+    const isCompletedSubmission = Boolean(completed);
+
     if (existingHistory) {
+      const nextCompleted = completed !== undefined ? completed : existingHistory.completed;
+
       // Update existing history
       history = await prisma.history.update({
         where: {
@@ -120,7 +124,7 @@ export async function POST(req: NextRequest) {
         },
         data: {
           watchTime: watchTime || existingHistory.watchTime,
-          completed: completed !== undefined ? completed : existingHistory.completed,
+          completed: nextCompleted,
           viewedAt: new Date(),
         },
         include: {
@@ -134,7 +138,7 @@ export async function POST(req: NextRequest) {
           userId: session.user.id,
           videoId: video.id, // Use the database video ID, not YouTube ID
           watchTime: watchTime || 0,
-          completed: completed || false,
+          completed: isCompletedSubmission,
         },
         include: {
           video: true,
@@ -142,7 +146,18 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    return NextResponse.json({ history }, { status: 201 })
+    const updatedUser = isCompletedSubmission
+      ? await prisma.user.update({
+          where: { id: session.user.id },
+          data: { points: { increment: 1 } },
+          select: { points: true },
+        })
+      : await prisma.user.findUnique({
+          where: { id: session.user.id },
+          select: { points: true },
+        });
+
+    return NextResponse.json({ history, points: updatedUser?.points ?? 0 }, { status: 201 })
   } catch (error) {
     console.error("Error creating/updating history:", error)
     return NextResponse.json(

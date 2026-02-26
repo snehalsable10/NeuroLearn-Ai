@@ -84,6 +84,8 @@ export function VideoPlayer({
         credentials: 'include',
         body: JSON.stringify({
           videoId,
+          title,
+          description,
           watchTime: 0, // You can pass actual watch time if tracked
           completed: true,
         }),
@@ -91,6 +93,16 @@ export function VideoPlayer({
 
       // Award blockchain badge for first video completion
       if (historyResponse.ok) {
+        try {
+          const historyData = await historyResponse.json();
+          if (typeof historyData?.points === 'number') {
+            localStorage.setItem('neuro_points', String(historyData.points));
+            window.dispatchEvent(new Event('storage'));
+          }
+        } catch (parseError) {
+          console.error('Failed to parse history response:', parseError);
+        }
+
         try {
           await fetch('/api/badge/award', {
             method: 'POST',

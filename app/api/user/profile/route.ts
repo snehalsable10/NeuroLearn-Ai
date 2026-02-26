@@ -24,6 +24,7 @@ export async function GET(req: NextRequest) {
         email: true,
         image: true,
         createdAt: true,
+        points: true,
         _count: {
           select: {
             videos: true,
@@ -71,6 +72,7 @@ export async function PUT(req: NextRequest) {
         email: true,
         image: true,
         createdAt: true,
+        points: true,
       },
     })
 
